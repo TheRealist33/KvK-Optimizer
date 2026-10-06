@@ -79,7 +79,6 @@ function render(prefix,out){
 
  document.getElementById(out).innerHTML=`
  <p><b>Finish If Started Now</b><br>${finish.toLocaleString()}</p>
- <p><b>Target Reset</b><br>${target.toUTCString()}</p>
  <p><b>Optimal Start Time</b><br>${start.toLocaleString()}</p>
  <p><b>Countdown To Start</b><br>${wait>0 ? Math.floor(wait/3600000)+'h '+Math.floor((wait%3600000)/60000)+'m' : 'Start Now'}</p>
  <p class="good">${wait>0 ? 'WAIT FOR OPTIMAL START' : 'READY TO START'}</p>`;
