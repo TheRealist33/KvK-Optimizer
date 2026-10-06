@@ -3,94 +3,185 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title> Troop Landing Calculator V6</title>
+<title>KvK Landing Planner</title>
+
 <style>
-body{font-family:system-ui,Arial;background:#0f172a;color:white;max-width:1200px;margin:auto;padding:16px}
-.card{background:#1e293b;border-radius:16px;padding:16px;margin:12px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
-input{width:55px;padding:8px;border-radius:8px;border:none}
-.good{color:#22c55e;font-weight:bold}
+body{
+    font-family:system-ui,Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    max-width:900px;
+    margin:auto;
+    padding:16px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:16px;
+    padding:20px;
+    margin:12px 0;
+}
+
+input{
+    width:80px;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    text-align:center;
+    font-size:18px;
+}
+
+button{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.good{
+    color:#22c55e;
+    font-weight:bold;
+    font-size:20px;
+}
+
+.row{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+h1{
+    text-align:center;
+}
 </style>
 </head>
+
 <body>
-<h1> Troop Landing Calculator V6</h1>
+
+<h1>KvK Landing Planner</h1>
 
 <div class="card">
-<div><b>Local Time:</b> <span id="local"></span></div>
-<div><b>UTC Time:</b> <span id="utc"></span></div>
-<div><b>Next 00:00 UTC Reset In:</b> <span id="reset"></span></div>
-</div>
-
-<div class="grid">
-<div class="card">
-<h2>Infantry</h2>
-D <input id="id" value="0"> H <input id="ih" value="0"> M <input id="im" value="0"> S <input id="is" value="0">
-<div id="inf"></div>
+    <div><b>Local Time:</b> <span id="local"></span></div>
+    <div><b>UTC Time:</b> <span id="utc"></span></div>
+    <div><b>Next 00:00 UTC Reset In:</b> <span id="reset"></span></div>
 </div>
 
 <div class="card">
-<h2>Cavalry</h2>
-D <input id="cd" value="0"> H <input id="ch" value="0"> M <input id="cm" value="0"> S <input id="cs" value="0">
-<div id="cav"></div>
+    <h2>Troop Training Time</h2>
+
+    <div class="row">
+        Days <input id="d" value="1">
+        Hours <input id="h" value="23">
+        Minutes <input id="m" value="4">
+        Seconds <input id="s" value="30">
+    </div>
 </div>
 
 <div class="card">
-<h2>Archers</h2>
-D <input id="ad" value="1"> H <input id="ah" value="23"> M <input id="am" value="4"> S <input id="as" value="30">
-<div id="arc"></div>
-</div>
+    <button onclick="calculate()">Calculate Landing Time</button>
 </div>
 
-<div class="card"><button onclick="calcAll()">Optimize All Queues</button></div>
+<div class="card" id="results"></div>
 
 <script>
+
 function nextReset(){
- const r=new Date();
- r.setUTCHours(24,0,0,0);
- return r;
+    const r = new Date();
+    r.setUTCHours(24,0,0,0);
+    return r;
 }
 
 function updateClock(){
- const now=new Date();
- local.textContent=now.toLocaleString();
- utc.textContent=now.toUTCString();
- const d=nextReset()-now;
- reset.textContent=`${Math.floor(d/3600000)}h ${Math.floor((d%3600000)/60000)}m ${Math.floor((d%60000)/1000)}s`;
-}
-setInterval(updateClock,1000); updateClock();
 
-function render(prefix,out){
- const d=+document.getElementById(prefix+'d').value||0;
- const h=+document.getElementById(prefix+'h').value||0;
- const m=+document.getElementById(prefix+'m').value||0;
- const s=+document.getElementById(prefix+'s').value||0;
+    const now = new Date();
 
- const dur=((((d*24+h)*60+m)*60+s)*1000);
- const now=new Date();
- const finish=new Date(now.getTime()+dur);
+    document.getElementById("local").textContent =
+        now.toLocaleString();
 
- let target=nextReset();
- while(target <= finish){
-   target.setUTCDate(target.getUTCDate()+1);
- }
+    document.getElementById("utc").textContent =
+        now.toUTCString();
 
- const start=new Date(target.getTime()-dur);
- const wait=start-now;
+    const diff = nextReset() - now;
 
- document.getElementById(out).innerHTML=`
- <p><b>Finish If Started Now</b><br>${finish.toLocaleString()}</p>
- <p><b>Optimal Start Time</b><br>${start.toLocaleString()}</p>
- <p><b>Countdown To Start</b><br>${wait>0 ? Math.floor(wait/3600000)+'h '+Math.floor((wait%3600000)/60000)+'m' : 'Start Now'}</p>
- <p class="good">${wait>0 ? 'WAIT FOR OPTIMAL START' : 'READY TO START'}</p>`;
+    const hours = Math.floor(diff/3600000);
+    const mins = Math.floor((diff%3600000)/60000);
+    const secs = Math.floor((diff%60000)/1000);
+
+    document.getElementById("reset").textContent =
+        `${hours}h ${mins}m ${secs}s`;
 }
 
-function calcAll(){
- render('i','inf');
- render('c','cav');
- render('a','arc');
+setInterval(updateClock,1000);
+updateClock();
+
+function calculate(){
+
+    const days =
+        Number(document.getElementById("d").value) || 0;
+
+    const hours =
+        Number(document.getElementById("h").value) || 0;
+
+    const mins =
+        Number(document.getElementById("m").value) || 0;
+
+    const secs =
+        Number(document.getElementById("s").value) || 0;
+
+    const duration =
+        ((((days*24)+hours)*60+mins)*60+secs)*1000;
+
+    const now = new Date();
+
+    const finish =
+        new Date(now.getTime()+duration);
+
+    let target = nextReset();
+
+    while(target <= finish){
+        target.setUTCDate(
+            target.getUTCDate()+1
+        );
+    }
+
+    const start =
+        new Date(target.getTime()-duration);
+
+    const wait =
+        start-now;
+
+    document.getElementById("results").innerHTML = `
+        <p><b>Finish If Started Now</b><br>
+        ${finish.toLocaleString()}</p>
+
+        <p><b>Optimal Start Time</b><br>
+        ${start.toLocaleString()}</p>
+
+        <p><b>Countdown To Start</b><br>
+        ${
+            wait > 0
+            ? Math.floor(wait/3600000)+'h '+
+              Math.floor((wait%3600000)/60000)+'m'
+            : 'Start Now'
+        }</p>
+
+        <p class="good">
+        ${
+            wait > 0
+            ? 'WAIT FOR OPTIMAL START'
+            : 'READY TO START'
+        }
+        </p>
+    `;
 }
-calcAll();
+
+calculate();
+
 </script>
+
 </body>
 </html>
-
