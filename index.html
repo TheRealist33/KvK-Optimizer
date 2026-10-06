@@ -96,11 +96,17 @@ body{
     cursor:pointer;
 }
 
-.num{
+.numInput{
+    width:100%;
+    background:transparent;
+    border:none;
+    outline:none;
+    text-align:center;
     font-size:52px;
-    color:#22C55E;
     font-weight:900;
+    color:#22C55E;
     margin:10px 0;
+    font-family:inherit;
 }
 
 .label{
@@ -158,14 +164,8 @@ body{
 
 @media(max-width:850px){
 
-    .top{
-        grid-template-columns:1fr;
-    }
-
-    .duration{
-        grid-template-columns:1fr;
-    }
-
+    .top,
+    .duration,
     .results{
         grid-template-columns:1fr;
     }
@@ -211,36 +211,63 @@ body{
 
 <div class="unit">
 <button class="btn" onclick="chg('days',1)">+</button>
-<div id="daysView" class="num">0</div>
-<button class="btn" onclick="chg('days',-1)">−</button>
+
+<input
+id="daysView"
+class="numInput"
+type="number"
+min="0"
+value="0">
+
+<button class="btn" onclick="chg('days',-1)">-</button>
 <div class="label">Days</div>
 </div>
 
 <div class="unit">
 <button class="btn" onclick="chg('hours',1)">+</button>
-<div id="hoursView" class="num">0</div>
-<button class="btn" onclick="chg('hours',-1)">−</button>
+
+<input
+id="hoursView"
+class="numInput"
+type="number"
+min="0"
+value="0">
+
+<button class="btn" onclick="chg('hours',-1)">-</button>
 <div class="label">Hours</div>
 </div>
 
 <div class="unit">
 <button class="btn" onclick="chg('minutes',1)">+</button>
-<div id="minutesView" class="num">0</div>
-<button class="btn" onclick="chg('minutes',-1)">−</button>
+
+<input
+id="minutesView"
+class="numInput"
+type="number"
+min="0"
+value="0">
+
+<button class="btn" onclick="chg('minutes',-1)">-</button>
 <div class="label">Minutes</div>
 </div>
 
 <div class="unit">
 <button class="btn" onclick="chg('seconds',1)">+</button>
-<div id="secondsView" class="num">0</div>
-<button class="btn" onclick="chg('seconds',-1)">−</button>
+
+<input
+id="secondsView"
+class="numInput"
+type="number"
+min="0"
+value="0">
+
+<button class="btn" onclick="chg('seconds',-1)">-</button>
 <div class="label">Seconds</div>
 </div>
 
 </div>
 
 </div>
-
 <div class="card">
 
 <h2>🎯 Desired Landing Date & Time</h2>
@@ -310,26 +337,43 @@ let hours = 0;
 let minutes = 0;
 let seconds = 0;
 
+function syncInputs(){
+
+    days =
+        parseInt(document.getElementById("daysView").value) || 0;
+
+    hours =
+        parseInt(document.getElementById("hoursView").value) || 0;
+
+    minutes =
+        parseInt(document.getElementById("minutesView").value) || 0;
+
+    seconds =
+        parseInt(document.getElementById("secondsView").value) || 0;
+}
+
 function chg(type, amount){
+
+    syncInputs();
 
     if(type==="days"){
         days=Math.max(0,days+amount);
-        document.getElementById("daysView").textContent=days;
+        document.getElementById("daysView").value=days;
     }
 
     if(type==="hours"){
         hours=Math.max(0,hours+amount);
-        document.getElementById("hoursView").textContent=hours;
+        document.getElementById("hoursView").value=hours;
     }
 
     if(type==="minutes"){
         minutes=Math.max(0,minutes+amount);
-        document.getElementById("minutesView").textContent=minutes;
+        document.getElementById("minutesView").value=minutes;
     }
 
     if(type==="seconds"){
         seconds=Math.max(0,seconds+amount);
-        document.getElementById("secondsView").textContent=seconds;
+        document.getElementById("secondsView").value=seconds;
     }
 
     calc();
@@ -337,122 +381,131 @@ function chg(type, amount){
 
 function calc(){
 
-    const localEl=document.getElementById("local");
-    const utcEl=document.getElementById("utc");
-    const resetEl=document.getElementById("reset");
+    syncInputs();
 
-    const startNowEl=document.getElementById("startNow");
-    const finishNowEl=document.getElementById("finishNow");
+    const now = new Date();
 
-    const desiredEl=document.getElementById("desired");
-    const requiredEl=document.getElementById("required");
-    const untilEl=document.getElementById("until");
-    const statusEl=document.getElementById("status");
+    document.getElementById("local").textContent =
+        now.toLocaleString();
 
-    const landingDateEl=document.getElementById("landingDate");
-    const landingTimeEl=document.getElementById("landingTime");
+    document.getElementById("utc").textContent =
+        now.toUTCString();
 
-    const now=new Date();
-
-    localEl.textContent=now.toLocaleString();
-    utcEl.textContent=now.toUTCString();
-
-    const nextReset=new Date();
+    const nextReset = new Date();
     nextReset.setUTCHours(24,0,0,0);
 
-    const resetDiff=nextReset-now;
+    const resetDiff = nextReset - now;
 
-    const rh=Math.floor(resetDiff/3600000);
-    const rm=Math.floor((resetDiff%3600000)/60000);
-    const rs=Math.floor((resetDiff%60000)/1000);
+    document.getElementById("reset").textContent =
+        Math.floor(resetDiff/3600000) + "h " +
+        Math.floor((resetDiff%3600000)/60000) + "m " +
+        Math.floor((resetDiff%60000)/1000) + "s";
 
-    resetEl.textContent=`${rh}h ${rm}m ${rs}s`;
+    const durationMs =
+        (
+            days * 86400 +
+            hours * 3600 +
+            minutes * 60 +
+            seconds
+        ) * 1000;
 
-    const durationMs=
-        ((days*86400)+(hours*3600)+(minutes*60)+seconds)*1000;
+    document.getElementById("startNow").textContent =
+        now.toLocaleString();
 
-    startNowEl.textContent=now.toLocaleString();
-
-    finishNowEl.textContent=
+    document.getElementById("finishNow").textContent =
         new Date(now.getTime()+durationMs).toLocaleString();
 
-    if(landingDateEl.value){
+    const landingDate =
+        document.getElementById("landingDate").value;
 
-        const target=new Date(
-            landingDateEl.value +
-            "T" +
-            (landingTimeEl.value || "00:00") +
-            ":00"
-        );
+    const landingTime =
+        document.getElementById("landingTime").value;
 
-        desiredEl.textContent=target.toLocaleString();
+    if(landingDate){
 
-        const requiredStart=
+        const target =
+            new Date(
+                landingDate +
+                "T" +
+                (landingTime || "00:00") +
+                ":00"
+            );
+
+        document.getElementById("desired").textContent =
+            target.toLocaleString();
+
+        const requiredStart =
             new Date(target.getTime()-durationMs);
 
-        requiredEl.textContent=
+        document.getElementById("required").textContent =
             requiredStart.toLocaleString();
 
-        const diff=
-            requiredStart.getTime()-now.getTime();
+        const diff =
+            requiredStart.getTime() -
+            now.getTime();
 
-        if(diff<=0){
+        if(diff <= 0){
 
-            untilEl.textContent="0d 0h 0m 0s";
+            document.getElementById("until").textContent =
+                "0d 0h 0m 0s";
 
-            statusEl.textContent="START NOW";
+            document.getElementById("status").textContent =
+                "START NOW";
 
-            statusEl.style.background="#22C55E";
-            statusEl.style.color="#04150A";
+            document.getElementById("status").style.background =
+                "#22C55E";
 
         }else{
 
-            const totalSeconds=
+            const total =
                 Math.floor(diff/1000);
 
-            const d=
-                Math.floor(totalSeconds/86400);
+            const d =
+                Math.floor(total/86400);
 
-            const h=
-                Math.floor((totalSeconds%86400)/3600);
+            const h =
+                Math.floor((total%86400)/3600);
 
-            const m=
-                Math.floor((totalSeconds%3600)/60);
+            const m =
+                Math.floor((total%3600)/60);
 
-            const s=
-                totalSeconds%60;
+            const s =
+                total%60;
 
-            untilEl.textContent=
-                `${d}d ${h}h ${m}m ${s}s`;
+            document.getElementById("until").textContent =
+                d + "d " +
+                h + "h " +
+                m + "m " +
+                s + "s";
 
-            statusEl.textContent=
+            document.getElementById("status").textContent =
                 "WAIT TO START";
 
-            statusEl.style.background="#38BDF8";
-            statusEl.style.color="#00111F";
+            document.getElementById("status").style.background =
+                "#38BDF8";
         }
 
     }else{
 
-        desiredEl.textContent="-";
-        requiredEl.textContent="-";
-        untilEl.textContent="-";
+        document.getElementById("desired").textContent = "-";
+        document.getElementById("required").textContent = "-";
+        document.getElementById("until").textContent = "-";
     }
 }
 
 document.addEventListener("DOMContentLoaded",function(){
 
+    document.getElementById("daysView").addEventListener("input",calc);
+    document.getElementById("hoursView").addEventListener("input",calc);
+    document.getElementById("minutesView").addEventListener("input",calc);
+    document.getElementById("secondsView").addEventListener("input",calc);
+
+    document.getElementById("landingDate").addEventListener("input",calc);
+    document.getElementById("landingTime").addEventListener("input",calc);
+
     calc();
 
     setInterval(calc,1000);
-
-    document
-        .getElementById("landingDate")
-        .addEventListener("input",calc);
-
-    document
-        .getElementById("landingTime")
-        .addEventListener("input",calc);
 
 });
 
