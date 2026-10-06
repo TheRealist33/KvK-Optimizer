@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Troop Landing Calculator V24</title>
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:
+linear-gradient(rgba(5,15,30,.78),rgba(5,15,30,.9)),
+linear-gradient(135deg,#0f172a,#102a43);
+color:white;
+}
+.wrap{max-width:1200px;margin:auto;padding:20px}
+.banner{
+text-align:center;
+padding:24px;
+border-radius:28px;
+background:#0F172A;
+border:2px solid #7DD3FC;
+box-shadow:0 0 20px rgba(125,211,252,.25);
+margin-bottom:18px;
+}
+.banner h1{
+margin:0;
+font-size:46px;
+color:#7DD3FC;
+}
+.banner p{
+margin-top:8px;
+color:#22C55E;
+font-weight:bold;
+}
+.card{
+background:#0F172A;
+border:2px solid #7DD3FC;
+border-radius:24px;
+padding:18px;
+margin-bottom:18px;
+}
+.top{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+}
+.topbox{
+text-align:center;
+background:#102A43;
+border-radius:18px;
+padding:14px;
+}
+.topbox h3{margin:0;color:#7DD3FC}
+.duration{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:16px;
+}
+.unit{
+background:#102A43;
+border-radius:20px;
+padding:12px;
+text-align:center;
+}
+.btn{
+width:100%;
+border:none;
+border-radius:12px;
+padding:10px;
+font-size:30px;
+font-weight:bold;
+background:#1E40AF;
+color:white;
+cursor:pointer;
+}
+.num{
+font-size:56px;
+font-weight:900;
+color:#22C55E;
+margin:10px 0;
+}
+.label{
+font-size:20px;
+color:#7DD3FC;
+font-weight:bold;
+}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row input{
+padding:14px;
+font-size:18px;
+border-radius:12px;
+border:none;
+}
+.results{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+}
+.panel{
+background:#102A43;
+border-radius:18px;
+padding:16px;
+}
+.green{color:#22C55E;font-size:22px;font-weight:bold}
+.blue{color:#7DD3FC;font-size:22px;font-weight:bold}
+.status{
+margin-top:14px;
+padding:16px;
+border-radius:16px;
+text-align:center;
+font-size:28px;
+font-weight:900;
+background:#22C55E;
+color:#04150a;
+}
+@media(max-width:850px){
+.top,.duration,.results{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="banner">
+<h1>🏰 TROOP LANDING CALCULATOR</h1>
+<p>Plan the exact moment your troops finish training</p>
+</div>
+
+<div class="card top">
+<div class="topbox"><h3>Local Time</h3><div id="local"></div></div>
+<div class="topbox"><h3>UTC Time</h3><div id="utc"></div></div>
+<div class="topbox"><h3>UTC Reset</h3><div id="reset"></div></div>
+</div>
+
+<div class="card">
+<h2>⚔️ Training Duration</h2>
+<div class="duration">
+<div class="unit"><button class="btn" onclick="chg('days',1)">+</button><div id="daysView" class="num">0</div><button class="btn" onclick="chg('days',-1)">−</button><div class="label">Days</div></div>
+<div class="unit"><button class="btn" onclick="chg('hours',1)">+</button><div id="hoursView" class="num">0</div><button class="btn" onclick="chg('hours',-1)">−</button><div class="label">Hours</div></div>
+<div class="unit"><button class="btn" onclick="chg('minutes',1)">+</button><div id="minutesView" class="num">0</div><button class="btn" onclick="chg('minutes',-1)">−</button><div class="label">Minutes</div></div>
+<div class="unit"><button class="btn" onclick="chg('seconds',1)">+</button><div id="secondsView" class="num">0</div><button class="btn" onclick="chg('seconds',-1)">−</button><div class="label">Seconds</div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>🎯 Desired Landing Date & Time</h2>
+<div class="row">
+<input id="landingDate" type="date">
+<input id="landingTime" type="time" value="00:00">
+</div>
+</div>
+
+<div class="results">
+<div class="card">
+<div class="panel">
+<h2>🟢 IF YOU START NOW</h2>
+<div>Start Time</div>
+<div id="startNow"></div><br>
+<div>Finish Time</div>
+<div id="finishNow" class="green"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="panel">
+<h2>🎯 LANDING PLANNER</h2>
+<div>Desired Landing</div>
+<div id="desired"></div><br>
+<div>Required Start Time</div>
+<div id="required" class="blue"></div><br>
+<div>Time Until Start</div>
+<div id="until" class="blue"></div>
+<div id="status" class="status">WAIT TO START</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+let days=0,hours=0,minutes=0,seconds=0;
+function chg(id,v){
+ window[id]=Math.max(0,window[id]+v);
+ document.getElementById(id+'View').textContent=window[id];
+ calc();
+}
+function calc(){
+ const now=new Date();
+ local.textContent=now.toLocaleString();
+ utc.textContent=now.toUTCString();
+
+ const nr=new Date(); nr.setUTCHours(24,0,0,0);
+ const d=nr-now;
+ reset.textContent=`${Math.floor(d/3600000)}h ${Math.floor((d%3600000)/60000)}m ${Math.floor((d%60000)/1000)}s`;
+
+ const dur=((days*86400)+(hours*3600)+(minutes*60)+seconds)*1000;
+
+ startNow.textContent=now.toLocaleString();
+ finishNow.textContent=new Date(now.getTime()+dur).toLocaleString();
+
+ if(landingDate.value){
+   const target=new Date(landingDate.value+"T"+(landingTime.value||"00:00")+":00");
+   desired.textContent=target.toLocaleString();
+
+   const start=new Date(target.getTime()-dur);
+   required.textContent=start.toLocaleString();
+
+   let diff=start-now;
+   if(diff<=0){
+      until.textContent="0s";
+      status.textContent="START NOW";
+   } else {
+      let s=Math.floor(diff/1000);
+      until.textContent=`${Math.floor(s/86400)}d ${Math.floor((s%86400)/3600)}h ${Math.floor((s%3600)/60)}m ${s%60}s`;
+      status.textContent="WAIT TO START";
+   }
+ }
+}
+setInterval(calc,1000);
+landingDate.oninput=calc;
+landingTime.oninput=calc;
+calc();
+</script>
+</body>
+</html>
